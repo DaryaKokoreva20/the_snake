@@ -30,9 +30,6 @@ SNAKE_COLOR = (0, 255, 0)
 # Цвет камня
 STONE_COLOR = (95, 95, 95)
 
-# Скорость движения змейки:
-SPEED = 5
-
 # Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 
@@ -195,7 +192,7 @@ class Stone(GameObject):
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
 
-def handle_keys(game_object):
+def handle_keys(game_object, speed):
     """Функция обрабатывает нажатия клавиш, чтобы изменить направление
     движения змейки.
     """
@@ -212,6 +209,10 @@ def handle_keys(game_object):
                 game_object.next_direction = LEFT
             elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
                 game_object.next_direction = RIGHT
+            elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
+                speed[0] = min(speed[0] + 1, 20)
+            elif event.key == pygame.K_MINUS:
+                speed[0] = max(speed[0] - 1, 1)
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 raise SystemExit
@@ -229,9 +230,11 @@ def main():
     # Инициализация PyGame:
     pygame.init()
 
+    # Скорость движения змейки:
+    speed = [5]
+
     # Рекордная длина змейки
     record = 1
-    pygame.display.set_caption(f'Змейка | Рекорд: {record}')
 
     # Создание экземпляров классов
     snake = Snake()
@@ -242,11 +245,14 @@ def main():
 
     # Основной цикл игры
     while True:
-        clock.tick(SPEED)
+        clock.tick(speed[0])
 
         screen.fill(BOARD_BACKGROUND_COLOR)
 
-        handle_keys(snake)
+        handle_keys(snake, speed)
+        pygame.display.set_caption(
+            f'Змейка | Рекорд: {record} | Скорость: {speed[0]}'
+        )
         snake.update_direction()
 
         # Съедение яблока
@@ -257,7 +263,9 @@ def main():
 
         if snake.length > record:
             record = snake.length
-            pygame.display.set_caption(f'Змейка | Рекорд: {record}')
+            pygame.display.set_caption(
+                f'Змейка | Рекорд: {record} | Скорость: {speed[0]}'
+            )
 
         snake.move()
 
