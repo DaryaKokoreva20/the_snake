@@ -149,12 +149,18 @@ class Apple(GameObject):
         super().__init__(body_color)
         self.body_color = body_color
 
-    def randomize_position(self):
-        """Метод устанавливает случайное положение яблока на игровом поле."""
-        self.position = (
-            randint(0, GRID_WIDTH - 1) * GRID_SIZE,
-            randint(0, GRID_HEIGHT - 1) * GRID_SIZE
-        )
+    def randomize_position(self, snake_positions):
+        """Метод устанавливает случайное положение яблока, которое не
+        совпадает с позициями змейки.
+        """
+        while True:
+            new_position = (
+                randint(0, GRID_WIDTH - 1) * GRID_SIZE,
+                randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+            )
+            if new_position not in snake_positions:
+                self.position = new_position
+                break
 
     def draw(self):
         """Метод отрисовывает яблоко на игровой поверхности."""
@@ -173,12 +179,18 @@ class Stone(GameObject):
         super().__init__(body_color)
         self.body_color = body_color
 
-    def randomize_position(self):
-        """Метод устанавливает случайное положение камня на игровом поле."""
-        self.position = (
-            randint(0, GRID_WIDTH - 1) * GRID_SIZE,
-            randint(0, GRID_HEIGHT - 1) * GRID_SIZE
-        )
+    def randomize_position(self, snake_positions):
+        """Метод устанавливает случайное положение камня, которое не совпадает
+        с позициями змейки.
+        """
+        while True:
+            new_position = (
+                randint(0, GRID_WIDTH - 1) * GRID_SIZE,
+                randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+            )
+            if new_position not in snake_positions:
+                self.position = new_position
+                break
 
     def draw(self):
         """Метод отрисовывает камень на игровой поверхности."""
@@ -221,6 +233,7 @@ def main():
     # Создание экземпляров классов
     snake = Snake()
     apple = Apple()
+    stone = Stone()
 
     # Основной цикл игры
     while True:
@@ -234,7 +247,8 @@ def main():
         # Съедение яблока
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            apple.randomize_position()
+            apple.randomize_position(snake.positions)
+            stone.randomize_position(snake.positions)
 
         snake.move()
 
@@ -242,8 +256,13 @@ def main():
         if snake.get_head_position() in snake.positions[2:]:
             snake.reset()
 
+        if snake.get_head_position() == stone.position:
+            snake.reset()
+            stone.randomize_position(snake.positions)
+
         snake.draw()
         apple.draw()
+        stone.draw()
 
         # Обновление экрана
         pygame.display.update()
