@@ -7,6 +7,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
 GRID_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
+SCREEN_CENTER = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
 # Направления движения:
 UP = (0, -1)
@@ -26,6 +27,9 @@ APPLE_COLOR = (255, 0, 0)
 # Цвет змейки
 SNAKE_COLOR = (0, 255, 0)
 
+# Цвет камня
+STONE_COLOR = (95, 95, 95)
+
 # Скорость движения змейки:
 SPEED = 5
 
@@ -43,7 +47,7 @@ class GameObject:
     """Базовый класс, содержащий общие атрибуты игровых объектов."""
 
     def __init__(self, body_color=BOARD_BACKGROUND_COLOR,
-                 position=((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))):
+                 position=(SCREEN_CENTER)):
         """Метод инициализирует базовые атрибуты объекта (позиция и цвет)."""
         self.position = position
         self.body_color = body_color
@@ -131,7 +135,7 @@ class Snake(GameObject):
         """Сбрасывает в начальное состояние после столкновения с собой."""
         screen.fill(BOARD_BACKGROUND_COLOR)
         self.length = 1
-        self.positions = [((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))]
+        self.positions = [SCREEN_CENTER]
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
         self.next_direction = None
         self.last = None
@@ -141,7 +145,7 @@ class Apple(GameObject):
     """Класс, описывающий яблоко и наследующийся от GameObject."""
 
     def __init__(self, body_color=APPLE_COLOR):
-        """Метод задаёт цвет яблока и устанавливает его начальную позицию."""
+        """Метод задаёт цвет яблока."""
         super().__init__(body_color)
         self.body_color = body_color
 
@@ -154,6 +158,30 @@ class Apple(GameObject):
 
     def draw(self):
         """Метод отрисовывает яблоко на игровой поверхности."""
+        rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(screen, self.body_color, rect)
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
+
+class Stone(GameObject):
+    """Класс, описывающий препятствие в виде камня, при столкновении с которым
+    змейка будет возвращаться в начал состояние, и наследующийся от GameObject.
+    """
+
+    def __init__(self, body_color=STONE_COLOR):
+        """Метод задаёт цвет камня."""
+        super().__init__(body_color)
+        self.body_color = body_color
+
+    def randomize_position(self):
+        """Метод устанавливает случайное положение камня на игровом поле."""
+        self.position = (
+            randint(0, GRID_WIDTH - 1) * GRID_SIZE,
+            randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+        )
+
+    def draw(self):
+        """Метод отрисовывает камень на игровой поверхности."""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
