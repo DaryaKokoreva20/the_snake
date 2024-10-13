@@ -36,9 +36,6 @@ SPEED = 5
 # Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 
-# Заголовок окна игрового поля:
-pygame.display.set_caption('Змейка')
-
 # Настройка времени:
 clock = pygame.time.Clock()
 
@@ -72,7 +69,6 @@ class Snake(GameObject):
             self.positions = [self.position]
         else:
             self.positions = positions.copy()
-            self.positions.append(self.position)
         self.direction = direction
         self.next_direction = next_direction
         self.body_color = body_color
@@ -112,7 +108,7 @@ class Snake(GameObject):
 
     def draw(self):
         """Метод отрисовывает змейку на экране, затирая след"""
-        for position in self.positions[:-1]:
+        for position in self.positions[1:]:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
@@ -233,10 +229,16 @@ def main():
     # Инициализация PyGame:
     pygame.init()
 
+    # Рекордная длина змейки
+    record = 1
+    pygame.display.set_caption(f'Змейка | Рекорд: {record}')
+
     # Создание экземпляров классов
     snake = Snake()
     apple = Apple()
+    apple.randomize_position(snake.positions)
     stone = Stone()
+    stone.randomize_position(snake.positions)
 
     # Основной цикл игры
     while True:
@@ -252,6 +254,10 @@ def main():
             snake.length += 1
             apple.randomize_position(snake.positions)
             stone.randomize_position(snake.positions)
+
+        if snake.length > record:
+            record = snake.length
+            pygame.display.set_caption(f'Змейка | Рекорд: {record}')
 
         snake.move()
 
