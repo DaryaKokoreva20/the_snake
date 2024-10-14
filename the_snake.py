@@ -172,29 +172,39 @@ class Stone(GameObject):
         super().__init__(body_color)
         self.body_color = body_color
 
-    def randomize_position(self, snake_positions, apple_position):
+    def randomize_position(self, snake_positions, snake_head_position,
+                           apple_position):
         """Метод устанавливает случайное положение камня, которое не совпадает
         с позициями змейки.
         """
+        head_x, head_y = snake_head_position
+        adjacent_positions = [
+            (head_x - GRID_SIZE, head_y),
+            (head_x + GRID_SIZE, head_y),
+            (head_x, head_y - GRID_SIZE),
+            (head_x, head_y + GRID_SIZE)
+        ]
         while True:
             new_position = (
                 randint(0, GRID_WIDTH - 1) * GRID_SIZE,
                 randint(0, GRID_HEIGHT - 1) * GRID_SIZE
             )
             if (new_position not in snake_positions
-                    and new_position != apple_position):
+                    and new_position != apple_position
+                    and new_position not in adjacent_positions):
                 self.position = new_position
                 break
 
     @staticmethod
-    def create_stones(snake_positions, apple_position,
+    def create_stones(snake_positions, apple_position, snake_head_position,
                       min_stones=0, max_stones=3):
         """Создает список камней со случайным количеством от 0 до 3."""
         stones = []
         num_stones = randint(min_stones, max_stones)
         for _ in range(num_stones):
             stone = Stone()
-            stone.randomize_position(snake_positions, apple_position)
+            stone.randomize_position(snake_positions, snake_head_position,
+                                     apple_position)
             stones.append(stone)
         return stones
 
@@ -253,7 +263,8 @@ def main():
     snake = Snake()
     apple = Apple()
     apple.randomize_position(snake.positions)
-    stones = Stone.create_stones(snake.positions, apple.position)
+    stones = Stone.create_stones(snake.positions, snake.get_head_position(),
+                                 apple.position)
 
     # Основной цикл игры
     while True:
@@ -271,7 +282,9 @@ def main():
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-            stones = Stone.create_stones(snake.positions, apple.position)
+            stones = Stone.create_stones(snake.positions,
+                                         snake.get_head_position(),
+                                         apple.position)
 
         if snake.length > record:
             record = snake.length
