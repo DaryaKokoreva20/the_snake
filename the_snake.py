@@ -172,7 +172,7 @@ class Stone(GameObject):
         super().__init__(body_color)
         self.body_color = body_color
 
-    def randomize_position(self, snake_positions):
+    def randomize_position(self, snake_positions, apple_position):
         """Метод устанавливает случайное положение камня, которое не совпадает
         с позициями змейки.
         """
@@ -181,18 +181,20 @@ class Stone(GameObject):
                 randint(0, GRID_WIDTH - 1) * GRID_SIZE,
                 randint(0, GRID_HEIGHT - 1) * GRID_SIZE
             )
-            if new_position not in snake_positions:
+            if (new_position not in snake_positions
+                    and new_position != apple_position):
                 self.position = new_position
                 break
 
     @staticmethod
-    def create_stones(snake_positions, min_stones=0, max_stones=3):
+    def create_stones(snake_positions, apple_position,
+                      min_stones=0, max_stones=3):
         """Создает список камней со случайным количеством от 0 до 3."""
         stones = []
         num_stones = randint(min_stones, max_stones)
         for _ in range(num_stones):
             stone = Stone()
-            stone.randomize_position(snake_positions)
+            stone.randomize_position(snake_positions, apple_position)
             stones.append(stone)
         return stones
 
@@ -203,7 +205,7 @@ class Stone(GameObject):
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
 
-def handle_direction_keys(game_object):
+def handle_keys(game_object, speed):
     """Функция обрабатывает нажатия клавиш, чтобы изменить направление
     движения змейки.
     """
@@ -220,24 +222,13 @@ def handle_direction_keys(game_object):
                 game_object.next_direction = LEFT
             elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
                 game_object.next_direction = RIGHT
-            elif event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                raise SystemExit
-
-
-def handle_speed_keys(game_object, speed):
-    """Функция обрабатывает нажатия клавиш, чтобы изменить скорость
-    движения змейки.
-    """
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            raise SystemExit
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
+            elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
                 speed[0] = min(speed[0] + 1, 20)
             elif event.key == pygame.K_MINUS:
                 speed[0] = max(speed[0] - 1, 1)
+            elif event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                raise SystemExit
 
 
 def main():
@@ -262,7 +253,7 @@ def main():
     snake = Snake()
     apple = Apple()
     apple.randomize_position(snake.positions)
-    stones = Stone.create_stones(snake.positions)
+    stones = Stone.create_stones(snake.positions, apple.position)
 
     # Основной цикл игры
     while True:
@@ -270,8 +261,7 @@ def main():
 
         screen.fill(BOARD_BACKGROUND_COLOR)
 
-        handle_direction_keys(snake)
-        handle_speed_keys(snake, speed)
+        handle_keys(snake, speed)
         pygame.display.set_caption(
             f'Змейка | Рекорд: {record} | Скорость: {speed[0]}'
         )
@@ -281,7 +271,7 @@ def main():
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-            stones = Stone.create_stones(snake.positions)
+            stones = Stone.create_stones(snake.positions, apple.position)
 
         if snake.length > record:
             record = snake.length
